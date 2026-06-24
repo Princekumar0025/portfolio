@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="form-container">
+    {% if form_name == 'add_customer' %}
+        <h2>Add Customer</h2>
+        <form method="post" id="adminForm" action="/admin/add_customer_api">
+            <div class="form-group">
+                <input name="c_id" type="number" id="c_id" placeholder=" " required>
+                <label for="c_id">Customer ID</label>
+            </div>
+            <div class="form-group">
+                <input name="name" id="name" placeholder=" " required>
+                <label for="name">Name</label>
+            </div>
+            <div class="form-group">
+                <input name="cphone" id="cphone" placeholder=" ">
+                <label for="cphone">Phone</label>
+            </div>
+            <div class="form-group">
+                <select name="payment" id="payment">
+                    <option value="1">Credit Card</option>
+                    <option value="2">Debit Card</option>
+                </select>
+                <label for="payment">Payment Method</label>
+            </div>
+            <div class="form-group">
+                <input name="pstatus" id="pstatus" placeholder=" ">
+                <label for="pstatus">Payment Status</label>
+            </div>
+            <div class="form-group">
+                <input name="email" type="email" id="email" placeholder=" ">
+                <label for="email">Email</label>
+            </div>
+            <div class="form-group">
+                <input name="orderid" id="orderid" placeholder=" ">
+                <label for="orderid">Order ID</label>
+            </div>
+            <div class="form-group">
+                <input name="date" type="date" id="date">
+                <label for="date">Date</label>
+            </div>
+            <button type="submit" class="btn secondary" style="width:100%">Submit</button>
+        </form>
+
+    {% elif form_name == 'add_employee' %}
+        <h2>Add Employee</h2>
+        <form method="post" id="adminForm" action="/admin/add_employee_api">
+            <div class="form-group">
+                <input name="Emp_id" type="number" id="Emp_id" placeholder=" " required>
+                <label for="Emp_id">Employee ID</label>
+            </div>
+            <div class="form-group">
+                <input name="ename" id="ename" placeholder=" " required>
+                <label for="ename">Name</label>
+            </div>
+            <div class="form-group">
+                <input name="emp_g" id="emp_g" placeholder=" ">
+                <label for="emp_g">Gender (M/F)</label>
+            </div>
+            <div class="form-group">
+                <input name="eage" type="number" id="eage" placeholder=" ">
+                <label for="eage">Age</label>
+            </div>
+            <div class="form-group">
+                <input name="emp_phone" id="emp_phone" placeholder=" ">
+                <label for="emp_phone">Phone</label>
+            </div>
+            <div class="form-group">
+                <input name="pwd" type="password" id="pwd" placeholder=" ">
+                <label for="pwd">Password</label>
+            </div>
+            <button type="submit" class="btn secondary" style="width:100%">Submit</button>
+        </form>
+
+    {% elif form_name == 'add_food' %}
+        <h2>Add Food Item</h2>
+        <form method="post" id="adminForm" action="/admin/add_food_api">
+            <div class="form-group">
+                <input name="Food_id" type="number" id="Food_id" placeholder=" " required>
+                <label for="Food_id">Food ID</label>
+            </div>
+            <div class="form-group">
+                <input name="Foodname" id="Foodname" placeholder=" " required>
+                <label for="Foodname">Name</label>
+            </div>
+            <div class="form-group">
+                <select name="Food_size" id="Food_size">
+                    <option value="Small">Small</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Large">Large</option>
+                </select>
+                <label for="Food_size">Size</label>
+            </div>
+            <div class="form-group">
+                <input name="prize" type="number" step="0.01" id="prize" placeholder=" ">
+                <label for="prize">Price</label>
+            </div>
+            <button type="submit" class="btn secondary" style="width:100%">Submit</button>
+        </form>
+
+    {% elif form_name == 'view_records' %}
+        <h2>View Records</h2>
+        <form method="post" id="viewForm" action="/admin/view_records_api" style="display:flex; flex-wrap:wrap; gap: 1rem; justify-content:center;">
+            <div class="form-group" style="flex-grow: 1;">
+                <select name="view_choice" id="view_choice" required>
+                    <option value="" disabled selected>Select an option</option>
+                    <option value="employee_id">Employee by ID</option>
+                    <option value="customer_name">Customer by Name</option>
+                    <option value="all_foods">All Foods</option>
+                    <option value="orders_by_food_id">Orders by Food ID</option>
+                </select>
+                <label for="view_choice">Choose Table</label>
+            </div>
+            <div class="form-group" style="flex-grow: 2;">
+                <input name="search_value" id="search_value" placeholder=" ">
+                <label for="search_value">Search Value</label>
+            </div>
+            <button type="submit" class="btn secondary">View Records</button>
+        </form>
+    {% endif %}
+
+    <a href="/" class="btn" style="display:block; text-align:center; margin-top: 20px;">Home</a>
+    <p id="msg" style="text-align: center; margin-top: 1rem;"></p>
+</div>
+<div id="results" class="records-table-container" style="display:none; text-align:center;"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const form = document.getElementById('adminForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const data = new URLSearchParams(new FormData(form));
+            fetch(form.action, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+                body: data
+            }).then(response => response.json())
+            .then(json => {
+                const msgElem = document.getElementById('msg');
+                msgElem.style.color = json.success ? 'green' : 'red';
+                msgElem.textContent = json.message;
+                if(json.success) form.reset();
+            }).catch(() => {
+                const msgElem = document.getElementById('msg');
+                msgElem.style.color = 'red';
+                msgElem.textContent = 'Network error. Please try again.';
+            });
+        });
+    }
+
+    const viewForm = document.getElementById('viewForm');
+    if (viewForm) {
+        const viewChoice = document.getElementById('view_choice');
+        const searchValue = document.getElementById('search_value');
+        const resultsDiv = document.getElementById('results');
+
+        function toggleInput() {
+            if(viewChoice.value == 'all_foods' || viewChoice.value === ''){
+                searchValue.disabled = true;
+                searchValue.value = '';
+                searchValue.placeholder = '';
+                searchValue.parentElement.style.opacity = '0.5';
+            } else {
+                searchValue.disabled = false;
+                searchValue.placeholder = ' ';
+                searchValue.parentElement.style.opacity = '1';
+            }
+        }
+        viewChoice.addEventListener('change', toggleInput);
+        toggleInput();
+
+        viewForm.addEventListener('submit', function(e){
+            e.preventDefault();
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = "Loading...";
+            const data = new URLSearchParams(new FormData(viewForm));
+            fetch(viewForm.action, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+                body: data
+            }).then(res => res.json())
+            .then(json => {
+                if(json.success){
+                    if(json.results.length === 0) {
+                        resultsDiv.innerHTML = "<p>No records found.</p>";
+                        return;
+                    }
+                    let table = '<table><thead><tr>';
+                    // Get columns from first row
+                    const cols = Object.keys(json.results[0]);
+                    for(const col of cols){ table += `<th>${col}</th>`; }
+                    table += '</tr></thead><tbody>';
+                    for(const row of json.results){
+                        table += '<tr>';
+                        for(const col of cols){ table += `<td>${row[col]}</td>`; }
+                        table += '</tr>';
+                    }
+                    table += '</tbody></table>';
+                    resultsDiv.innerHTML = table;
+                } else {
+                    resultsDiv.innerHTML = `<p style="color:red">${json.message}</p>`;
+                }
+            }).catch(() => resultsDiv.innerHTML = "<p style='color:red'>Network error occurred.</p>");
+        });
+    }
+</script>
+{% endblock %}

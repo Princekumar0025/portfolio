@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="checkout-summary">
+    <h2>Your Cart</h2>
+    {% if not cart_items %}
+        <p style="text-align: center;">Your cart is empty.</p>
+        <a href="/" class="btn secondary" style="display:block; text-align:center; margin-top: 20px;">Go to Homepage</a>
+    {% else %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th style="width: 60px;">Image</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in cart_items %}
+                <tr>
+                    <td style="font-weight:bold;">{{ item.name }}</td>
+                    <td><img src="{{ item.img_url }}" alt="{{ item.name }}" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"></td>
+                    <td>{{ item.quantity }}</td>
+                    <td>₹{{ "%.2f"|format(item.price) }}</td>
+                    <td style="font-weight:bold; color:var(--accent);">₹{{ "%.2f"|format(item.total) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <h3 style="text-align:right;">Total: ₹{{ "%.2f"|format(total_price) }}</h3>
+        
+        <form action="/api/create-checkout-session" method="POST" style="margin-top:20px;">
+            <h3>Delivery Details</h3>
+            <div class="form-group" style="margin-bottom: 20px;">
+                <input type="text" name="address" id="address" placeholder=" " required>
+                <label for="address">Delivery Address</label>
+            </div>
+            <button type="submit" class="btn" style="width:100%;">Place Order</button>
+        </form>
+        <a href="/" style="display:block; text-align:center; margin-top:20px; color:var(--accent);">Continue Shopping</a>
+    {% endif %}
+</div>
+
+{% if top_recs %}
+<div class="recommendations">
+    <h3>Our Top Recommendations for You</h3>
+    <div>
+        {% for rec in top_recs %}
+        <div class="rec-item" style="display:flex; gap:15px; margin-bottom: 15px; background: #fff; padding: 10px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+            <img src="{{ rec.img_url }}" alt="{{ rec.name }}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;">
+            <div class="rec-details">
+                <strong style="font-size: 16px;">{{ rec.name }}</strong>
+                <p style="margin:2px 0; font-size:14px; color: #666;">⭐ {{ rec.rating }} | <span style="color:#111; font-weight:bold;">₹{{ "%.2f"|format(rec.price) }}</span></p>
+                <button class="add-to-cart-btn" data-food-id="{{ rec.id }}" style="margin-top:5px; padding: 6px 16px; background: #e23744; color: white; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">Add +</button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

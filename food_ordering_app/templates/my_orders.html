@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="checkout-summary" style="max-width: 900px;">
+    <h2>My Orders</h2>
+    <div id="order-history-list">
+        {% if not orders %}
+            <p style='text-align:center;'>You have no past orders.</p>
+        {% else %}
+            {% for order in orders %}
+            <div class="order-history-item" style="position: relative;">
+                <h4 style="margin-top:0; color:#ffcc29;">Tracking ID: {{ order.tracking_id }}</h4>
+                <p><strong>Status:</strong> <span class="order-status" data-id="{{ order.tracking_id }}">{{ order.status }}</span></p>
+                <p><strong>Items:</strong></p>
+                <ul style="padding-left: 20px; color:#ddd;">
+                    {% for item in order['items'] %}
+                    <li>{{ item.name }} (x{{ item.quantity }})</li>
+                    {% endfor %}
+                </ul>
+                <p><strong>Total Price:</strong> ₹{{ "%.2f"|format(order.total_price) }}</p>
+                <p><strong>Delivery Address:</strong> {{ order.address }}</p>
+                <p style="font-size: 0.85em; color:#aaa; margin-bottom:0;"><strong>Order Date:</strong> {{ order.created_at }}</p>
+                
+                {% if order.status == 'Out for Delivery' %}
+                <div class="delivery-map" style="margin-top: 20px; background: rgba(0,0,0,0.2); border-radius: 12px; padding: 20px; position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);">
+                    <h5 style="margin-top:0; margin-bottom: 20px; color: #fff; text-transform: uppercase; font-size: 12px; letter-spacing: 1px;">Live GPS Tracking</h5>
+                    <div style="width: 100%; height: 4px; background: #444; margin-top: 30px; position: relative; border-radius: 2px;">
+                        <span style="position: absolute; left: -5px; top: -15px; font-size: 24px;">🏢</span>
+                        <div class="scooter-anim" style="position: absolute; left: 0%; top: -20px; font-size: 28px; z-index: 5; transform: scaleX(-1);">🛵</div>
+                        <span style="position: absolute; right: -5px; top: -15px; font-size: 24px;">🏠</span>
+                    </div>
+                     <p style="text-align: center; color: #aaa; margin-top: 25px; font-size: 13px;">Rider arriving in <strong style="color: #22c55e;" class="eta-countdown">08:45</strong> mins</p>
+                </div>
+                {% endif %}
+
+                {% if order.status == 'Delivered' %}
+                <div class="rating-box" style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                    <p style="margin-top: 0; font-weight: bold; font-size: 14px; color: #fff;">Rate your delivery:</p>
+                    <div class="stars" style="font-size: 24px; cursor: pointer; color: rgba(255,255,255,0.2);">
+                        <span onclick="this.parentNode.style.color='#ffcc29'; alert('Thanks for rating!')">★</span>
+                        <span onclick="this.parentNode.style.color='#ffcc29'; alert('Thanks for rating!')">★</span>
+                        <span onclick="this.parentNode.style.color='#ffcc29'; alert('Thanks for rating!')">★</span>
+                        <span onclick="this.parentNode.style.color='#ffcc29'; alert('Thanks for rating!')">★</span>
+                        <span onclick="this.parentNode.style.color='#ffcc29'; alert('Thanks for rating!')">★</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+    <a href="/" class="btn secondary" style="display:block; text-align:center; margin-top:20px;">Back to Home</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function updateOrderStatus() {
+    const statusSpans = document.querySelectorAll('.order-status');
+    statusSpans.forEach(span => {
+        const trackingId = span.dataset.id;
+        fetch('/api/order_status/' + trackingId)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.status !== span.textContent) {
+                span.textContent = data.status;
+                span.style.color = '#22c55e'; // Highlight update
+                setTimeout(() => span.style.color = '', 2000);
+            }
+        });
+    });
+}
+
+// Poll every 5 seconds for status updates
+if (document.querySelectorAll('.order-status').length > 0) {
+    setInterval(updateOrderStatus, 5000);
+}
+</script>
+{% endblock %}
