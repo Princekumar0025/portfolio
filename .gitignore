@@ -7,3 +7,12 @@ __pycache__/
 *.pyc
 .pytest_cache/
 .DS_Store
+
+# Projects
+chatboot/
+flask_session/
+food_ordering_app/
+profile.web ammar/
+revorafit/
+swifty-platform/
+task-manager-app/
