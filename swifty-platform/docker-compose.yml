@@ -1,0 +1,77 @@
+version: '3.8'
+
+# Phase 7: Local DevOps Orchestration Pipeline
+# This mimics the AWS EKS production cluster network internally on your machine
+services:
+
+  # 1. API GATEWAY / REVERSE PROXY 
+  # Maps all incoming React front-end requests to the appropriate microservice securely
+  # In deployment, this is AWS API Gateway
+  nginx-gateway:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    depends_on:
+      - order-service
+      - ai-service
+
+  # 2. THE ORDER MICROSERVICE (Phase 4)
+  order-service:
+    build: 
+      context: ./apps/order-service
+    env_file: .env.production
+    environment:
+      - PORT=3001
+      - KAFKA_BROKER=kafka:9092
+    ports:
+      - "3001:3001"
+    depends_on:
+      - postgres
+      - kafka
+
+  # 3. THE AI MICROSERVICE (Phase 6)
+  ai-service:
+    build: 
+      context: ./apps/ai-service
+    env_file: .env.production
+    environment:
+      - PORT=3002
+    ports:
+      - "3002:3002"
+
+  # 4. KAFKA EVENT BUS BROKER
+  # The central spine that shares order data asynchronously to other microservices
+  zookeeper:
+    image: bitnami/zookeeper:latest
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+  kafka:
+    image: bitnami/kafka:latest
+    ports:
+      - "9092:9092"
+    environment:
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    depends_on:
+      - zookeeper
+
+  # 5. POSTGRESQL (Financials & User Auth Data)
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=swifty_admin
+      - POSTGRES_PASSWORD=swifty_secure
+      - POSTGRES_DB=swifty_orders
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+
+  # 6. REDIS CACHE (Live GPS & Active Tokens)
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+volumes:
+  pg-data:
