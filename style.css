@@ -217,6 +217,9 @@ body {
     cursor: pointer;
     font-family: var(--font-heading);
     letter-spacing: 0.5px;
+    position: relative;
+    z-index: 10;
+    pointer-events: auto;
 }
 
 .primary-btn {
