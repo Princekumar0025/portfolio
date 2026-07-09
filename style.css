@@ -630,6 +630,7 @@ body {
     mask-composite: exclude;
     opacity: 0.5;
     transition: var(--transition);
+    pointer-events: none;
 }
 
 .project-card:hover {
